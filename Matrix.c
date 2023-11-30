@@ -1,19 +1,20 @@
 #include "Base.h"
+#include "Type.h"
 
-double Get(Matrix *a, int row, int column)
+double Get(Matrix *matrix, int row, int column)
 {
-    return a->pointer[a->columns * row + column];
+    return matrix->pointer[matrix->columns * row + column];
 }
 
-void Set(Matrix *a, int row, int column, double value)
+void Set(Matrix *matrix, int row, int column, double value)
 {
-    a->pointer[a->columns * row + column] = value;
+    matrix->pointer[matrix->columns * row + column] = value;
 }
 
 Matrix New(int rows, int columns)
 {
     Matrix result;
-    result.pointer = (double *) malloc(rows * columns * sizeof(double));
+    result.pointer = (double *)malloc(rows * columns * sizeof(double));
     if (result.pointer != NULL)
     {
         result.rows = rows;
@@ -22,29 +23,55 @@ Matrix New(int rows, int columns)
     return result;
 }
 
-Matrix Copy(Matrix *a)
+Matrix Copy(Matrix *matrix)
 {
-    Matrix result = New(a->rows, a->columns);
-    for (int i = 0; i < a->rows; i++)
+    Matrix result = New(matrix->rows, matrix->columns);
+    for (int row = 0; row < matrix->rows; row++)
     {
-        for (int j = 0; j < a->columns; j++)
+        for (int column = 0; column < matrix->columns; column++)
         {
-            Set(&result, i, j, Get(a, i, j));
+            Set(&result, row, column, Get(matrix, row, column));
         }
     }
     return result;
 }
 
-void Print(Matrix *a)
+void Print(Matrix *matrix)
 {
-    for (int i = 0; i < a->rows; i++)
+    double tmp;
+    for (int row = 0; row < matrix->rows; row++)
     {
-        printf("%d: ", i + 1);
-        for (int j = 0; j < a->columns - 1; j++)
+        printf("%d: ", row + 1);
+        tmp = Get(matrix, row, 0);
+        if (tmp >= 0)
         {
-            printf("(%lf) * x[%d] + ", Get(a, i, j), j + 1);
+            printf(" \033[94m%lf\033[39m * \033[95mx[1]\033[39m ", tmp);
         }
-        printf("(%lf) = 0\n", Get(a, i, a -> columns - 1));
+        else
+        {
+            printf("-\033[94m%lf\033[39m * \033[95mx[1]\033[39m ", -tmp);
+        }
+        for (int column = 1; column < matrix->columns - 1; column++)
+        {
+            tmp = Get(matrix, row, column);
+            if (tmp >= 0)
+            {
+                printf("+ \033[94m%lf\033[39m * \033[95mx[%d]\033[39m ", tmp, column + 1);
+            }
+            else
+            {
+                printf("- \033[94m%lf\033[39m * \033[95mx[%d]\033[39m ", -tmp, column + 1);
+            }
+        }
+        tmp = Get(matrix, row, matrix->columns - 1);
+        if (tmp >= 0)
+        {
+            printf("+ \033[94m%lf\033[39m = \033[94m0\033[39m\n", tmp);
+        }
+        else
+        {
+            printf("- \033[94m%lf\033[39m = \033[94m0\033[39m\n", -tmp);
+        }
     }
 }
 
@@ -52,53 +79,54 @@ Matrix Sum(Matrix *a, Matrix *b)
 {
     assert((a->rows == b->rows) || (a->columns == b->columns));
     Matrix result = New(a->rows, a->columns);
-    for (int i = 0; i < a->rows; i++)
+    for (int row = 0; row < a->rows; row++)
     {
-        for (int j = 0; j < a->columns; j++)
+        for (int column = 0; column < a->columns; column++)
         {
-            Set(&result, i, j, Get(a, i, j) + Get(b, i, j));
+            Set(&result, row, column, Get(a, row, column) + Get(b, row, column));
         }
     }
     return result;
 }
 
-Matrix Transporent(Matrix *a)
+/* FIX ME */
+Matrix Transparent(Matrix *matrix)
 {
-    Matrix result = New(a->columns, a->rows);
-    for (int i = 0; i < a->rows; i++)
+    Matrix result = New(matrix->columns, matrix->rows);
+    for (int row = 0; row < matrix->rows; row++)
     {
-        for (int j = 0; j < a->columns; j++)
+        for (int column = 0; column < matrix->columns; column++)
         {
-            Set(&result, j, i, Get(a, i, j));
+            Set(&result, column, row, Get(matrix, row, column));
         }
     }
     return result;
 }
 
-void ComposeRowToNumber(Matrix *a, int index, double number)
+void ComposeRowToNumber(Matrix *matrix, int row, double multiplier)
 {
-    for (int i = 0; i < a->columns; i++)
+    for (int column = 0; column < matrix->columns; column++)
     {
-        Set(a, index, i, Get(a, index, i) * number);
+        Set(matrix, row, column, Get(matrix, row, column) * multiplier);
     }
 }
 
-void AddRowToRowByNumber(Matrix *a, int index1, int index2, double number)
+void AddRow1MultipliedByNumberToRow2(Matrix *a, int row1, int row2, double multiplier)
 {
-    for (int i = 0; i < a->columns; i++)
+    for (int column = 0; column < a->columns; column++)
     {
-        Set(a, index2, i, Get(a, index2, i) + Get(a, index1, i) * number);
+        Set(a, row2, column, Get(a, row2, column) + Get(a, row1, column) * multiplier);
     }
 }
 
-Matrix ComposeToNumber(Matrix *a, double number)
+Matrix ComposeToNumber(Matrix *a, double multiplier)
 {
     Matrix result = New(a->rows, a->columns);
     for (int i = 0; i < a->rows; i++)
     {
         for (int j = 0; j < a->columns; j++)
         {
-            Set(&result, i, j, Get(&result, i, j) * number);
+            Set(&result, i, j, Get(&result, i, j) * multiplier);
         }
     }
     return result;
@@ -141,17 +169,5 @@ void SwapTwoRows(Matrix *a, int row1, int row2)
         tmp = Get(a, row1, i);
         Set(a, row1, i, Get(a, row2, i));
         Set(a, row2, i, tmp);
-    }
-}
-
-void SwapTwoColumns(Matrix *a, int column1, int column2)
-{
-    assert((column1 >= 0) && (column2 >= 0) && (column1 < a->columns) && (column2 < a->columns));
-    double tmp;
-    for (int i = 0; i < a->rows; i++)
-    {
-        tmp = Get(a, i, column1);
-        Set(a, i, column1, Get(a, i, column2));
-        Set(a, i, column2, tmp);
     }
 }

@@ -2,33 +2,28 @@
 
 Matrix GaussMethod(Matrix *y)
 {
-    Matrix x = Copy(y);
+    Matrix x = Copy(y); // На всякий случай копируем входную матрицу
 
     // Треугольный вид
-    int k = 0; // Количество отсортированных неизвестных
-    for (int a = 0; a < x.rows; a++)
+    for (int i = 0; i < x.rows; i++)
     {
-        int swaps = 0;
-        for (int b = a; b < x.rows; b++) // Локальная сортировка - отсеивание рядов с одной и той же первой неизвестной
+        for (int j = 0; j < x.columns - 1; j++)
         {
-            if (!equali(Get(&x, b, k), 0))
+            if (!equal(Get(&x, i, j), 0))
             {
-                SwapTwoRows(&x, a + swaps, b);
-                swaps++;
+                double tmp;
+                double non_zero_element_of_start_row = Get(&x, i, j);
+                for (int row = i + 1; row < x.rows; row++)
+                {
+                    tmp = Get(&x, row, j);
+                    if (!equal(tmp, 0))
+                    {
+                        AddRow1MultipliedByNumberToRow2(&x, i, row, -tmp / non_zero_element_of_start_row);
+                    }
+                }
+                break;
             }
         }
-        if (swaps > 1) // Требуется создать локальный треугольный вид
-        {
-            for (int b = a + 1; b < a + swaps; b++)
-            {
-                AddRowToRowByNumber(&x, a, b,  - Get(&x, b, k) / Get(&x, a, k));
-            }
-        }
-        if (swaps == 0) // Ступенька съехала вправо - сортируемая неизвестная принимает любое значение
-        {
-            a--;
-        }
-        k++;
     }
 
     // Диагональный вид
@@ -37,7 +32,7 @@ Matrix GaussMethod(Matrix *y)
         int b = -1; // Есть ли ненулевые элементы
         for (int c = 0; c < x.columns - 1; c++)
         {
-            if (!equali(Get(&x, a, c), 0))
+            if (!equal(Get(&x, a, c), 0))
             {
                 b = c;
                 break;
@@ -47,12 +42,9 @@ Matrix GaussMethod(Matrix *y)
         {
             for (int c = a - 1; c >= 0; c--)
             {
-                AddRowToRowByNumber(&x, a, c, - Get(&x, c, b) / Get(&x, a, b));
+                AddRow1MultipliedByNumberToRow2(&x, a, c, - Get(&x, c, b) / Get(&x, a, b));
             }
         }
     }
-
-    printf("\033[92mThe simpled system:\033[39m\n");
-    Print(&x);
     return x;
 }

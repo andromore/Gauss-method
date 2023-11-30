@@ -1,8 +1,13 @@
-#include "Type.h"
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
 
-int equal(double a, double b, double c)
+#define INACCURACY pow(10, -10)
+
+int equal(double a, double b)
 {
-    if ((a - c < b) && (b < a + c))
+    if ((a - INACCURACY < b) && (b < a + INACCURACY))
     {
         return 1;
     }
