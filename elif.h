@@ -1,0 +1,1 @@
+#define elif else if
