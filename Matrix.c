@@ -76,34 +76,6 @@ void Print(Matrix *matrix)
     }
 }
 
-Matrix Sum(Matrix *a, Matrix *b)
-{
-    assert((a->rows == b->rows) || (a->columns == b->columns));
-    Matrix result = New(a->rows, a->columns);
-    for (int row = 0; row < a->rows; row++)
-    {
-        for (int column = 0; column < a->columns; column++)
-        {
-            Set(&result, row, column, Get(a, row, column) + Get(b, row, column));
-        }
-    }
-    return result;
-}
-
-/* FIX ME */
-Matrix Transparent(Matrix *matrix)
-{
-    Matrix result = New(matrix->columns, matrix->rows);
-    for (int row = 0; row < matrix->rows; row++)
-    {
-        for (int column = 0; column < matrix->columns; column++)
-        {
-            Set(&result, column, row, Get(matrix, row, column));
-        }
-    }
-    return result;
-}
-
 void ComposeRowToNumber(Matrix *matrix, int row, double multiplier)
 {
     for (int column = 0; column < matrix->columns; column++)

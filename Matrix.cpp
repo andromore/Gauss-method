@@ -1,8 +1,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include "Matrix.hpp"
-#include <cstring>
 
 /* Matrix */
 
@@ -219,6 +219,28 @@ void Matrix::add_matrix(const Matrix &summand)
         }
     }
 }
+
+/*
+Matrix Composition(Matrix *a, Matrix *b)
+{
+    assert(a->columns == b->rows);
+    Matrix result = New(a->rows, b->columns);
+    double sum;
+    for (int i = 0; i < a->rows; i++)
+    {
+        for (int j = 0; j < b->columns; j++)
+        {
+            sum = 0;
+            for (int k = 0; k < a->columns; k++)
+            {
+                sum += Get(a, i, k) * Get(b, k, j);
+            }
+            Set(&result, i, j, sum);
+        }
+    }
+    return result;
+}
+*/
 
 int main()
 {

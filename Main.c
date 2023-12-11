@@ -1,8 +1,6 @@
 #include "elif.h"
 #include "MethodGauss.h"
 
-// #define Debug
-
 int main()
 {
     int i, j, variables, equations;
@@ -44,6 +42,8 @@ int main()
     printf("   ...\n");
     printf("m: \033[93ma[m][1]\033[39m * \033[95mx[1]\033[39m + \033[93ma[m][2]\033[39m * \033[95mx[2]\033[39m + ... + \033[93ma[m][n]\033[39m * \033[95mx[n]\033[39m + \033[93mb[m]\033[39m = \033[94m0\033[39m\n");
     printf("\033[92mEnter the elements of augmented matrix:\033[39m\n");
+
+    // Вводим элементы матрицы
     for (i = 0; i < equations; i++)
     {
         for (j = 0; j < variables + 1; j++)
@@ -63,18 +63,58 @@ int main()
             }
         }
     }
+
+    // Проверка на нулевую матрицу
+    tmp = 1;
+    for (int row = 0; row < a.rows; row++)
+    {
+        for (int column = 0; column < a.columns - 1; column++)
+        {
+            if (!equal(Get(&a, row, column), 0))
+            {
+                tmp = 0;
+            }
+        }
+    }
+    if(tmp == 1)
+    {
+        tmp = 1;
+        for (int row = 0; row < a.rows; row++)
+        {
+            if (!equal(Get(&a, row, a.columns - 1), 0))
+            {
+                tmp = 0;
+            }
+        }
+        if(tmp == 1)
+        {
+            printf("%sAny set of numbers is a solution%s\n", "\033[92m", "\033[39m");
+            return 0;
+        }
+        printf("%sThis system has no solution%s\n", "\033[92m", "\033[39m");
+        return 0;
+    }
+
+    // Печатаем вид введённой системы
     printf("%sThe entered system of equations:%s\n", "\033[92m", "\033[39m");
     Print(&a);
-    Matrix x = GaussMethod(&a); // Решение системы
-    Free(&a);                   // Система больше не нужна
 
+    // Решаем систему
+    Matrix x = GaussMethod(&a); // Применение метода Гаусса
+    Free(&a);                   // Исходная система больше не нужна
+
+    // Печатаем упрощённую систему (диагональный вид системы)
     printf("%sThe simplified system:%s\n", "\033[92m", "\033[39m");
     Print(&x);
 
-#ifndef Debug
+    // Для типов переменных
+    int y[x.columns - 1];
+    // Список распечатанных элементов:
+    // -1 - переменная, от значения которой ничего не зависит
+    // 0 - главная переменная
+    // 1 - параметр
 
-    // Вывод результата
-    int y[x.columns - 1]; // Список распечатанных элементов: -1 - нет, 0 - главная, 1 - параметр.
+    // Поиск переменных, от которых ничего не зависит
     for (i = 0; i < x.columns; i++)
     {
         y[i] = -1;
@@ -149,11 +189,11 @@ int main()
                 {
                     if (tmp > 0)
                     {
-                        printf(" + %s%lf%s * %sx[%d]%s", "\033[94m", -tmp, "\033[39m", "\033[95m", j + 1, "\033[39m");
+                        printf(" + %s%lf%s * %sx[%d]%s", "\033[94m", tmp, "\033[39m", "\033[95m", j + 1, "\033[39m");
                     }
                     else
                     {
-                        printf(" - %s%lf%s * %sx[%d]%s", "\033[94m", tmp, "\033[39m", "\033[95m", j + 1, "\033[39m");
+                        printf(" - %s%lf%s * %sx[%d]%s", "\033[94m", -tmp, "\033[39m", "\033[95m", j + 1, "\033[39m");
                     }
                     y[j] = 1;
                 }
@@ -179,8 +219,9 @@ int main()
     }
     if (j == 0)
     {
-        printf("%sno variables%s\n", "\033[95m", "\033[39m");
+        printf("%sno variables%s", "\033[95m", "\033[39m");
     }
+    printf("\n");
 
     // Параметры
     j = 0;
@@ -199,10 +240,9 @@ int main()
     }
     if (j == 0)
     {
-        printf("%sno variables%s\n", "\033[95m", "\033[39m");
+        printf("%sno variables%s", "\033[95m", "\033[39m");
     }
-
-#endif
+    printf("\n");
 
     Free(&x); // Матрица решений больше не нужна
     return 0;
