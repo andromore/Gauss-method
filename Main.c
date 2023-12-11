@@ -1,5 +1,5 @@
-#include "elif.h"
 #include "MethodGauss.h"
+#include "stdio.h"
 
 int main()
 {
@@ -22,12 +22,12 @@ int main()
         printf("%s", "\033[91mO, I'm sorry, but it's too long for me...\033[39m\n");
         return 0;
     }
-    elif ((variables == 1) || (equations == 1))
+    else if ((variables == 1) || (equations == 1))
     {
         printf("%s", "\033[91mDo I really have to decide this?\033[39m\n");
         return 0;
     }
-    elif ((variables < 1) || (equations < 1))
+    else if ((variables < 1) || (equations < 1))
     {
         printf("%s", "\033[91mIt's a good joke, but no...\033[39m\n");
         return 0;
@@ -64,42 +64,6 @@ int main()
         }
     }
 
-    // Проверка основную матрицу на нулевую матрицу
-    tmp = 1;
-    for (int row = 0; row < x.rows; row++)
-    {
-        for (int column = 0; column < x.columns - 1; column++)
-        {
-            if (!equal(Get(&x, row, column), 0))
-            {
-                tmp = 0;
-            }
-        }
-    }
-    if(tmp == 1)
-    {
-        // Проверяем свободные члены
-        tmp = 1;
-        for (int row = 0; row < x.rows; row++)
-        {
-            if (!equal(Get(&x, row, x.columns - 1), 0))
-            {
-                tmp = 0;
-            }
-        }
-
-        // Все свободные члены оказались нулями
-        if(tmp == 1)
-        {
-            printf("%sAny set of numbers is a solution%s\n", "\033[92m", "\033[39m");
-            return 0;
-        }
-
-        // Все коэффициенты нули, а свободные члены не нули
-        printf("%sThis system has no solution%s\n", "\033[92m", "\033[39m");
-        return 0;
-    }
-
     // Печатаем вид введённой системы
     printf("%sThe entered system of equations:%s\n", "\033[92m", "\033[39m");
     Print(&x);
@@ -119,24 +83,34 @@ int main()
     // 1 - параметр
 
     // Поиск переменных, от которых ничего не зависит
-    for (i = 0; i < x.columns; i++)
+    for (int column = 0; column < x.columns; column++)
     {
-        y[i] = -1;
+        tmp = 1;
+        for (int row = 0;row < x.rows; row++)
+        {
+            if (!equal(Get(&x, row, column), 0))
+            {
+                tmp = 0;
+            }
+        }
+        if (tmp == 1)
+        {
+            y[column] = -1;
+        }
     }
 
     // Приведение диагонали к единичному виду
     for (i = 0; i < x.rows; i++)
     {
-        tmp = -1;
         for (j = 0; j < x.columns; j++)
         {
             if (!equal(Get(&x, i, j), 0))
             {
-                tmp = j;
+                ComposeRowToNumber(&x, i, 1 / Get(&x, i, j));
                 break;
             }
         }
-        ComposeRowToNumber(&x, i, 1 / Get(&x, i, tmp));
+        
     }
 
     // Поиск решений
@@ -216,7 +190,7 @@ int main()
             printf("%sx[%d]%s", "\033[95m", i + 1, "\033[39m");
             j++;
         }
-        elif (y[i] == -1)
+        else if (y[i] == -1)
         {
             printf(", %sx[%d]%s", "\033[95m", i + 1, "\033[39m");
         }
@@ -237,7 +211,7 @@ int main()
             printf("%sx[%d]%s", "\033[95m", i + 1, "\033[39m");
             j++;
         }
-        elif (y[i] == 1)
+        else if (y[i] == 1)
         {
             printf(", %sx[%d]%s", "\033[95m", i + 1, "\033[39m");
         }

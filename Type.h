@@ -1,6 +1,6 @@
 typedef struct
 {
     double *pointer;
-    unsigned char rows;
-    unsigned char columns;
+    int rows;
+    int columns;
 } Matrix;
