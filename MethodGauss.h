@@ -1,3 +1,3 @@
 #include "Matrix.h"
 
-Matrix GaussMethod(Matrix *);
+void GaussMethod(Matrix *);

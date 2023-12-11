@@ -33,7 +33,7 @@ int main()
         return 0;
     }
 
-    Matrix a = New(equations, variables + 1);
+    Matrix x = New(equations, variables + 1);
 
     // Заполнение системы
     printf("\033[92mGeneral view of the system of equations:\033[39m\n");
@@ -56,7 +56,7 @@ int main()
             {
                 printf("\033[93mb[%d]:\033[39m ", i + 1);
             }
-            if (scanf("%lf", &a.pointer[i * (variables + 1) + j]) == 0)
+            if (scanf("%lf", &x.pointer[i * (variables + 1) + j]) == 0)
             {
                 printf("%sI'm sorry, but I don't understand you. (Your input is incorrect)%s\n", "\033[91m", "\033[39m");
                 return 0;
@@ -64,13 +64,13 @@ int main()
         }
     }
 
-    // Проверка на нулевую матрицу
+    // Проверка основную матрицу на нулевую матрицу
     tmp = 1;
-    for (int row = 0; row < a.rows; row++)
+    for (int row = 0; row < x.rows; row++)
     {
-        for (int column = 0; column < a.columns - 1; column++)
+        for (int column = 0; column < x.columns - 1; column++)
         {
-            if (!equal(Get(&a, row, column), 0))
+            if (!equal(Get(&x, row, column), 0))
             {
                 tmp = 0;
             }
@@ -78,30 +78,34 @@ int main()
     }
     if(tmp == 1)
     {
+        // Проверяем свободные члены
         tmp = 1;
-        for (int row = 0; row < a.rows; row++)
+        for (int row = 0; row < x.rows; row++)
         {
-            if (!equal(Get(&a, row, a.columns - 1), 0))
+            if (!equal(Get(&x, row, x.columns - 1), 0))
             {
                 tmp = 0;
             }
         }
+
+        // Все свободные члены оказались нулями
         if(tmp == 1)
         {
             printf("%sAny set of numbers is a solution%s\n", "\033[92m", "\033[39m");
             return 0;
         }
+
+        // Все коэффициенты нули, а свободные члены не нули
         printf("%sThis system has no solution%s\n", "\033[92m", "\033[39m");
         return 0;
     }
 
     // Печатаем вид введённой системы
     printf("%sThe entered system of equations:%s\n", "\033[92m", "\033[39m");
-    Print(&a);
+    Print(&x);
 
     // Решаем систему
-    Matrix x = GaussMethod(&a); // Применение метода Гаусса
-    Free(&a);                   // Исходная система больше не нужна
+    GaussMethod(&x); // Применение метода Гаусса
 
     // Печатаем упрощённую систему (диагональный вид системы)
     printf("%sThe simplified system:%s\n", "\033[92m", "\033[39m");
