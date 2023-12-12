@@ -1,0 +1,7 @@
+#!/usr/bin/bash
+./Build
+./Run < 1.test
+./Run < 2.test
+./Run < 3.test
+./Run < 4.test
+./Run < 5.test

@@ -1,2 +1,2 @@
 #!/usr/bin/bash
-g++ Main.c MethodGauss.c Matrix.c Base.c -o Run -lm && ./Run
+g++ Main.c MethodGauss.c Matrix.c Base.c -o Run -lm

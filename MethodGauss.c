@@ -1,22 +1,32 @@
 #include "Matrix.h"
 
+void AddRow1MultipliedByNumberToRow2FromStartToEnd(Matrix *a, int row1, int row2, double multiplier, int start, int end)
+{
+    for (int column = start; column < end; column++)
+    {
+        Set(a, row2, column, Get(a, row2, column) + Get(a, row1, column) * multiplier);
+    }
+}
+
 void GaussMethod(Matrix *x)
 {
+    double tmp;
+    int last = 0;
     // Треугольный вид
-    for (int i = 0; i < x->rows; i++)
+    for (int a = 0; a < x->rows - 1; a++)
     {
-        for (int j = 0; j < x->columns - 1; j++)
+        for (int b = last; b < x->columns - 1; b++)
         {
-            if (!equal(Get(x, i, j), 0))
+            last = b;
+            if (!equal(Get(x, a, b), 0))
             {
-                double tmp;
-                double non_zero_element_of_start_row = Get(x, i, j);
-                for (int row = i + 1; row < x->rows; row++)
+                double non_zero_element_of_start_row = Get(x, a, b);
+                for (int c = a + 1; c < x->rows; c++)
                 {
-                    tmp = Get(x, row, j);
+                    tmp = Get(x, c, b);
                     if (!equal(tmp, 0))
                     {
-                        AddRow1MultipliedByNumberToRow2(x, i, row, -tmp / non_zero_element_of_start_row);
+                        AddRow1MultipliedByNumberToRow2(x, a, c, -tmp / non_zero_element_of_start_row);
                     }
                 }
                 break;
