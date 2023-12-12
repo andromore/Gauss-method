@@ -69,11 +69,11 @@ void Print(Matrix *matrix)
         tmp = Get(matrix, row, matrix->columns - 1);
         if (tmp >= 0)
         {
-            printf("+ \033[94m%lf\033[39m = \033[94m0\033[39m\n", tmp);
+            printf("=  \033[94m%lf\033[39m\n", tmp);
         }
         else
         {
-            printf("- \033[94m%lf\033[39m = \033[94m0\033[39m\n", -tmp);
+            printf("= -\033[94m%lf\033[39m\n", -tmp);
         }
     }
 }

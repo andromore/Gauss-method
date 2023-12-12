@@ -1,3 +1,0 @@
-#!/usr/bin/bash
-./Build
-./Run < Big.test > BigTestResult.txt
