@@ -1,10 +1,222 @@
-#include "MethodGauss.h"
 #include "stdio.h"
+#include "stdlib.h"
+#include "math.h"
+
+#define INACCURACY pow(10, -10) // Ошибка
+
+// Сравнение double с учётом ошибки
+int equal(double a, double b)
+{
+    if ((a - INACCURACY < b) && (b < a + INACCURACY))
+    {
+        return 1;
+    }
+    return 0;
+}
+
+typedef struct
+{
+    double *pointer;
+    int rows;
+    int columns;
+} Matrix;
+
+// Создать новую матрицу
+Matrix New(int rows, int columns)
+{
+    Matrix result;
+    result.pointer = (double *)malloc(rows * columns * sizeof(double));
+    if (result.pointer != NULL)
+    {
+        result.rows = rows;
+        result.columns = columns;
+    }
+    return result;
+}
+
+// Получить элемент матрицы
+double Get(Matrix *matrix, int row, int column)
+{
+    return matrix->pointer[matrix->columns * row + column];
+}
+
+// Установить элемент матрицы
+void Set(Matrix *matrix, int row, int column, double value)
+{
+    matrix->pointer[matrix->columns * row + column] = value;
+}
+
+// Копировать матрицу
+Matrix Copy(Matrix *matrix)
+{
+    Matrix result = New(matrix->rows, matrix->columns);
+    for (int row = 0; row < matrix->rows; row++)
+    {
+        for (int column = 0; column < matrix->columns; column++)
+        {
+            Set(&result, row, column, Get(matrix, row, column));
+        }
+    }
+    return result;
+}
+
+// Напечатать содержимое матрицы
+void Print(Matrix *matrix)
+{
+    double tmp;
+    for (int row = 0; row < matrix->rows; row++)
+    {
+        printf("%d: ", row + 1);
+        tmp = Get(matrix, row, 0);
+        if (tmp >= 0)
+        {
+            printf(" \033[94m%lf\033[39m * \033[95mx[1]\033[39m ", tmp);
+        }
+        else
+        {
+            printf("-\033[94m%lf\033[39m * \033[95mx[1]\033[39m ", -tmp);
+        }
+        for (int column = 1; column < matrix->columns - 1; column++)
+        {
+            tmp = Get(matrix, row, column);
+            if (tmp >= 0)
+            {
+                printf("+ \033[94m%lf\033[39m * \033[95mx[%d]\033[39m ", tmp, column + 1);
+            }
+            else
+            {
+                printf("- \033[94m%lf\033[39m * \033[95mx[%d]\033[39m ", -tmp, column + 1);
+            }
+        }
+        tmp = Get(matrix, row, matrix->columns - 1);
+        if (tmp >= 0)
+        {
+            printf("=  \033[94m%lf\033[39m\n", tmp);
+        }
+        else
+        {
+            printf("= -\033[94m%lf\033[39m\n", -tmp);
+        }
+    }
+}
+
+// Умножить ряд на число
+void ComposeRowToNumber(Matrix *matrix, int row, double multiplier)
+{
+    for (int column = 0; column < matrix->columns; column++)
+    {
+        Set(matrix, row, column, Get(matrix, row, column) * multiplier);
+    }
+}
+
+// Прибавить к одном ряду другой,умноженный на некоторое число
+void AddRow1MultipliedByNumberToRow2(Matrix *a, int row1, int row2, double multiplier)
+{
+    for (int column = 0; column < a->columns; column++)
+    {
+        Set(a, row2, column, Get(a, row2, column) + Get(a, row1, column) * multiplier);
+    }
+}
+
+// Освободить память
+void Free(Matrix *a)
+{
+    free(a->pointer); // Непосредственно освобождение памяти
+    // Правила хорошего тона для людей без дыр в ногах
+    a->pointer = NULL;
+    a->rows = 0;
+    a->columns = 0;
+}
+
+// Однопроходный метод Гаусса
+void GaussMethod1(Matrix *x)
+{
+    double tmp1, tmp2;
+    for (int a = 0; a < x->rows; a++)
+    {
+        for (int b = 0; b < x->columns - 1; b++)
+        {
+            tmp1 = Get(x, a, b);
+            if (!equal(tmp1, 0))
+            {
+                for (int c = 0; c < x->rows; c++)
+                {
+                    if (c == a)
+                    {
+                        continue;
+                    }
+                    tmp2 = Get(x, c, b);
+                    if (!equal(tmp2, 0))
+                    {
+                        AddRow1MultipliedByNumberToRow2(x, a, c, -tmp2 / tmp1);
+                    }
+                }
+                break;
+            }
+        }
+    }
+}
+
+// Двухпроходный метод Гаусса
+void GaussMethod2(Matrix *x)
+{
+    double tmp1, tmp2;
+    int last = 0;
+
+    // Треугольный вид
+    for (int a = 0; a < x->rows - 1; a++)
+    {
+        for (int b = last; b < x->columns - 1; b++)
+        {
+            last = b;
+            tmp1 = Get(x, a, b);
+            if (!equal(tmp1, 0))
+            {
+                for (int c = a + 1; c < x->rows; c++)
+                {
+                    tmp2 = Get(x, c, b);
+                    if (!equal(tmp2, 0))
+                    {
+                        AddRow1MultipliedByNumberToRow2(x, a, c, -tmp2 / tmp1);
+                    }
+                }
+                break;
+            }
+        }
+    }
+
+    // Диагональный вид
+    for (int a = x->rows - 1; a > 0; a--)
+    {
+        for (int b = 0; b < x->columns - 1; b++)
+        {
+            tmp1 = Get(x, a, b);
+            if (!equal(tmp1, 0))
+            {
+                for (int c = a - 1; c >= 0; c--)
+                {
+                    AddRow1MultipliedByNumberToRow2(x, a, c, -Get(x, c, b) / tmp1);
+                }
+                break;
+            }
+        }
+    }
+}
 
 int main()
 {
     int i, j, variables, equations;
     double tmp;
+    
+    // Общий вид матрицы системы
+    printf("\033[92mGeneral view of the system of equations:\033[39m\n");
+    printf("1: \033[93ma[1][1]\033[39m * \033[95mx[1]\033[39m + \033[93ma[1][2]\033[39m * \033[95mx[2]\033[39m + ... + \033[93ma[1][n]\033[39m * \033[95mx[n]\033[39m = \033[93mb[1]\033[39m\n");
+    printf("2: \033[93ma[2][1]\033[39m * \033[95mx[1]\033[39m + \033[93ma[2][2]\033[39m * \033[95mx[2]\033[39m + ... + \033[93ma[2][n]\033[39m * \033[95mx[n]\033[39m = \033[93mb[2]\033[39m\n");
+    printf("   ...\n");
+    printf("m: \033[93ma[m][1]\033[39m * \033[95mx[1]\033[39m + \033[93ma[m][2]\033[39m * \033[95mx[2]\033[39m + ... + \033[93ma[m][n]\033[39m * \033[95mx[n]\033[39m = \033[93mb[m]\033[39m\n");
+    printf("\033[92mEnter the elements of augmented matrix:\033[39m\n");
+
+    // Вводим количество уравнений и количество неизвестных
     printf("\033[92mEnter number of variables:\033[39m ");
     if (scanf("%d", &variables) == 0)
     {
@@ -35,14 +247,6 @@ int main()
 
     Matrix x = New(equations, variables + 1);
 
-    // Заполнение системы
-    printf("\033[92mGeneral view of the system of equations:\033[39m\n");
-    printf("1: \033[93ma[1][1]\033[39m * \033[95mx[1]\033[39m + \033[93ma[1][2]\033[39m * \033[95mx[2]\033[39m + ... + \033[93ma[1][n]\033[39m * \033[95mx[n]\033[39m = \033[93mb[1]\033[39m\n");
-    printf("2: \033[93ma[2][1]\033[39m * \033[95mx[1]\033[39m + \033[93ma[2][2]\033[39m * \033[95mx[2]\033[39m + ... + \033[93ma[2][n]\033[39m * \033[95mx[n]\033[39m = \033[93mb[2]\033[39m\n");
-    printf("   ...\n");
-    printf("m: \033[93ma[m][1]\033[39m * \033[95mx[1]\033[39m + \033[93ma[m][2]\033[39m * \033[95mx[2]\033[39m + ... + \033[93ma[m][n]\033[39m * \033[95mx[n]\033[39m = \033[93mb[m]\033[39m\n");
-    printf("\033[92mEnter the elements of augmented matrix:\033[39m\n");
-
     // Вводим элементы матрицы
     for (i = 0; i < equations; i++)
     {
@@ -71,12 +275,8 @@ int main()
     // Решаем систему
     GaussMethod1(&x); // Применение метода Гаусса
 
-    // Печатаем упрощённую систему (диагональный вид системы)
-    printf("%sThe simplified system:%s\n", "\033[92m", "\033[39m");
-    Print(&x);
-
     // Для типов переменных
-    int y[x.columns - 1];
+    int* y = (int*) malloc((x.columns - 1) * sizeof(int));
     // Список распечатанных элементов:
     // -1 - переменная, от значения которой ничего не зависит
     // 0 - главная переменная
